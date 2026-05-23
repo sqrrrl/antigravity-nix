@@ -8,7 +8,6 @@
   copyDesktopItems,
   makeWrapper,
   writeShellScript,
-  asar,
   bash,
   alsa-lib,
   at-spi2-atk,
@@ -54,8 +53,8 @@
   extraBwrapArgs ? [],
   srcOverride ? null,
 }: let
-  pname = "google-antigravity";
-  version = "1.23.2-4781536860569600";
+  pname = "google-antigravity-hub";
+  version = "2.0.6-5413878570549248";
 
   isAarch64 = stdenv.hostPlatform.system == "aarch64-linux";
 
@@ -85,15 +84,11 @@
     then srcOverride
     else
       fetchurl {
-        url = "https://edgedl.me.gvt1.com/edgedl/release2/j0qc3/antigravity/stable/${version}/linux-x64/Antigravity.tar.gz";
-        sha256 = "sha256-UjKkBI/0+hVoXZqYG6T7pXPil/PvybdvY455S693VyU=";
+        url = "https://storage.googleapis.com/antigravity-public/antigravity-hub/${version}/linux-x64/Antigravity.tar.gz";
+        sha256 = "sha256-rR4EU1FJsHwnAw6x6tQPTv2jiMs5AgvLuazN+0nkTMU=";
       };
 
   # Create a browser wrapper
-  # When useSystemChromeProfile is true (default), forces use of the user's
-  # existing Chrome profile so extensions are available to Antigravity.
-  # When false, omits profile flags so Chrome runs with its own default
-  # behavior, isolating Antigravity from the user's main profile.
   chrome-wrapper = writeShellScript "${browserCommand}-with-profile" ''
     set -euo pipefail
 
@@ -109,7 +104,6 @@
       "$@"
   '';
 
-  # Libraries loaded via dlopen() at runtime
   dlopenLibs = [
     libglvnd
     vulkan-loader
@@ -118,7 +112,6 @@
     libsecret
   ];
 
-  # Libraries linked normally (resolved by autoPatchelf via rpath)
   linkedLibs = [
     alsa-lib
     at-spi2-atk
@@ -159,11 +152,11 @@
 
   desktopItem = makeDesktopItem {
     name = "antigravity";
-    desktopName = "Google Antigravity";
-    comment = "Next-generation agentic IDE";
+    desktopName = "Google Antigravity Hub";
+    comment = "Next-generation agentic Hub";
     exec = "antigravity --enable-features=UseOzonePlatform,WaylandWindowDecorations --ozone-platform-hint=auto --enable-wayland-ime=true --wayland-text-input-version=3 %U";
     icon = "antigravity";
-    categories = ["Development" "IDE"];
+    categories = ["Development"];
     startupNotify = true;
     startupWMClass = "Antigravity";
     mimeTypes = [
@@ -172,7 +165,7 @@
   };
 
   meta = with lib; {
-    description = "Google Antigravity - Next-generation agentic IDE";
+    description = "Google Antigravity Hub";
     homepage = "https://antigravity.google";
     license = licenses.unfree;
     platforms = platforms.linux;
@@ -180,9 +173,6 @@
     mainProgram = "antigravity";
   };
 
-  # ── FHS variant (default) ──────────────────────────────────
-
-  # Extract the upstream tarball without modification
   antigravity-unwrapped = stdenv.mkDerivation {
     inherit pname version;
     src = finalSrc;
@@ -192,32 +182,11 @@
     dontPatchELF = true;
     dontStrip = true;
 
-    nativeBuildInputs = [asar];
-
-    postPatch = ''
-      packed="resources/app/node_modules.asar"
-      unpacked="resources/app/node_modules"
-      asar extract "$packed" "$unpacked"
-      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
-        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
-        --replace-fail "/bin/bash" "${bash}/bin/bash"
-      rm -rf "$packed"
-      ln -rs "$unpacked" "$packed"
-    '';
-
     installPhase = ''
       runHook preInstall
 
       mkdir -p $out/lib/antigravity
       cp -r ./* $out/lib/antigravity/
-
-      # Provide a dummy tunnel script to avoid ENOENT errors when running 'antigravity tunnel'
-      cat <<'EOF' > $out/lib/antigravity/bin/antigravity-tunnel
-      #!/usr/bin/env bash
-      echo "Remote tunneling is not supported in the Linux package of Google Antigravity because the required proprietary binary is not bundled." >&2
-      exit 1
-      EOF
-      chmod +x $out/lib/antigravity/bin/antigravity-tunnel
 
       runHook postInstall
     '';
@@ -225,9 +194,8 @@
     inherit meta;
   };
 
-  # FHS environment for running Antigravity
   fhs = buildFHSEnv {
-    name = "antigravity-fhs";
+    name = "antigravity-hub-fhs";
     targetPkgs = pkgs:
       runtimeLibs
       ++ [
@@ -243,12 +211,10 @@
     ] ++ extraBwrapArgs;
 
     runScript = writeShellScript "antigravity-wrapper" ''
-      # Set Chrome paths to use our wrapper that forces user profile
-      # This ensures extensions installed in user's Chrome profile are available
       export CHROME_BIN=${chrome-wrapper}
       export CHROME_PATH=${chrome-wrapper}
 
-      exec ${antigravity-unwrapped}/lib/antigravity/bin/antigravity "$@"
+      exec ${antigravity-unwrapped}/lib/antigravity/antigravity "$@"
     '';
 
     inherit meta;
@@ -268,22 +234,11 @@
       runHook preInstall
 
       mkdir -p $out/bin
-      ln -s ${fhs}/bin/antigravity-fhs $out/bin/antigravity
-
-      # Install icon from the app resources
-      mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
-      cp ${antigravity-unwrapped}/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
+      ln -s ${fhs}/bin/antigravity-hub-fhs $out/bin/antigravity
 
       runHook postInstall
     '';
   };
-
-  # ── Non-FHS variant ────────────────────────────────────────
-  # Uses autoPatchelfHook instead of buildFHSEnv.
-  # This avoids the bubblewrap sandbox that sets the kernel
-  # "no new privileges" flag, which prevents sudo from working
-  # in the integrated terminal.
 
   no-fhs-package = stdenv.mkDerivation {
     inherit pname version meta;
@@ -293,14 +248,12 @@
       autoPatchelfHook
       makeWrapper
       copyDesktopItems
-      asar
     ];
 
     buildInputs = runtimeLibs;
 
     runtimeDependencies = dlopenLibs;
 
-    # Optional deps from the bundled Microsoft Authentication extension
     autoPatchelfIgnoreMissingDeps = [
       "libwebkit2gtk-4.1.so.0"
       "libsoup-3.0.so.0"
@@ -311,17 +264,6 @@
     dontBuild = true;
     dontConfigure = true;
 
-    postPatch = ''
-      packed="resources/app/node_modules.asar"
-      unpacked="resources/app/node_modules"
-      asar extract "$packed" "$unpacked"
-      substituteInPlace $unpacked/@vscode/sudo-prompt/index.js \
-        --replace-fail "/usr/bin/pkexec" "/run/wrappers/bin/pkexec" \
-        --replace-fail "/bin/bash" "${bash}/bin/bash"
-      rm -rf "$packed"
-      ln -rs "$unpacked" "$packed"
-    '';
-
     desktopItems = [desktopItem];
 
     installPhase = ''
@@ -330,23 +272,10 @@
       mkdir -p $out/lib/antigravity
       cp -r ./* $out/lib/antigravity/
 
-      # Provide a dummy tunnel script to avoid ENOENT errors when running 'antigravity tunnel'
-      cat <<'EOF' > $out/lib/antigravity/bin/antigravity-tunnel
-      #!/usr/bin/env bash
-      echo "Remote tunneling is not supported in the Linux package of Google Antigravity because the required proprietary binary is not bundled." >&2
-      exit 1
-      EOF
-      chmod +x $out/lib/antigravity/bin/antigravity-tunnel
-
       mkdir -p $out/bin
-      makeWrapper $out/lib/antigravity/bin/antigravity $out/bin/antigravity \
+      makeWrapper $out/lib/antigravity/antigravity $out/bin/antigravity \
         --set CHROME_BIN ${chrome-wrapper} \
         --set CHROME_PATH ${chrome-wrapper}
-
-      # Install icon from the app resources
-      mkdir -p $out/share/pixmaps $out/share/icons/hicolor/1024x1024/apps
-      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/pixmaps/antigravity.png
-      cp $out/lib/antigravity/resources/app/resources/linux/code.png $out/share/icons/hicolor/1024x1024/apps/antigravity.png
 
       runHook postInstall
     '';
