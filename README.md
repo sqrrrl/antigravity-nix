@@ -88,18 +88,21 @@ Add to your `flake.nix`:
 
   environment.systemPackages = with pkgs; [
     google-antigravity
+    google-antigravity-ide
+    google-antigravity-cli
   ];
 }
 ```
 
 ## Package Variants
 
-Two packaging strategies are available:
+Packaging variants for IDE, Hub, and CLI are available:
 
 | Variant | Strategy | Trade-off |
 |---|---|---|
-| `default` / `google-antigravity` | `buildFHSEnv` + bubblewrap | Sandboxed, but inherits `no_new_privileges` restrictions |
-| `google-antigravity-no-fhs` | `autoPatchelfHook` | No sandbox, full system integration |
+| `default` / `google-antigravity` / `google-antigravity-ide` | `buildFHSEnv` + bubblewrap | Sandboxed, but inherits `no_new_privileges` restrictions |
+| `google-antigravity-no-fhs` / `google-antigravity-ide-no-fhs` / `google-antigravity-cli-no-fhs` | `autoPatchelfHook` | No sandbox, full system integration |
+| `google-antigravity-cli` | Static Binary Wrapper | CLI binary runs natively |
 
 The **default** uses `buildFHSEnv` to create an isolated FHS environment via bubblewrap. This is the most compatible approach, but the sandbox sets the kernel's `no_new_privileges` flag, which prevents privilege escalation (`sudo`, `pkexec`) and can cause issues with nested namespaces.
 
@@ -131,8 +134,10 @@ This omits the `--user-data-dir` and `--profile-directory` flags, letting Chrome
 ## Usage
 
 ```bash
-antigravity                  # launch from terminal
-antigravity /path/to/project # open a specific project
+antigravity                  # launch the hub
+antigravity-ide              # launch the ide
+antigravity-ide /path        # open a specific project
+agy                          # launch the cli
 ```
 
 ## Version Pinning
@@ -163,12 +168,12 @@ If the default `fetchurl` path fails — Google CDN unreachable, regional restri
 2. Point the package at it:
 
 ```nix
-(antigravity-nix.packages.${system}.default.override {
+(antigravity-nix.packages.${system}.google-antigravity.override {
   srcOverride = /absolute/path/to/Antigravity.tar.gz;
 })
 ```
 
-This bypasses `fetchurl` while keeping the rest of the packaging (FHS wrapping, Chrome integration, desktop entry) intact. No `--impure` and no patching `package.nix` required. Works for both the `default` and `google-antigravity-no-fhs` variants.
+This bypasses `fetchurl` while keeping the rest of the packaging (FHS wrapping, Chrome integration, desktop entry) intact. No `--impure` and no patching `pkg/*` required. Works for both the `default` and `google-antigravity-no-fhs` variants.
 
 ## Requirements
 

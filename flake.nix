@@ -19,9 +19,15 @@
         };
       in {
         packages = {
-          default = pkgs.callPackage ./package.nix {};
-          google-antigravity = pkgs.callPackage ./package.nix {};
-          google-antigravity-no-fhs = pkgs.callPackage ./package.nix {useFHS = false;};
+          default = pkgs.callPackage ./pkg/hub.nix {};
+          google-antigravity = pkgs.callPackage ./pkg/hub.nix {};
+          google-antigravity-no-fhs = pkgs.callPackage ./pkg/hub.nix {useFHS = false;};
+
+          google-antigravity-ide = pkgs.callPackage ./pkg/ide.nix {};
+          google-antigravity-ide-no-fhs = pkgs.callPackage ./pkg/ide.nix {useFHS = false;};
+
+          google-antigravity-cli = pkgs.callPackage ./pkg/cli.nix {};
+          google-antigravity-cli-no-fhs = pkgs.callPackage ./pkg/cli.nix {useFHS = false;};
         };
 
         # Development shell for working on this flake
@@ -51,12 +57,18 @@
     )
     // {
       # Version information for auto-update
-      version = "1.23.2-4781536860569600";
+      version = "2.0.6-5413878570549248";
+      ide_version = "2.0.3-6242596486512640";
+      cli_version = "1.0.1-5826024320139264";
 
       # Overlay for easy integration into NixOS configurations
       overlays.default = final: prev: {
-        google-antigravity = final.callPackage ./package.nix {};
-        google-antigravity-no-fhs = final.callPackage ./package.nix {useFHS = false;};
+        google-antigravity = final.callPackage ./pkg/hub.nix {};
+        google-antigravity-no-fhs = final.callPackage ./pkg/hub.nix {useFHS = false;};
+        google-antigravity-ide = final.callPackage ./pkg/ide.nix {};
+        google-antigravity-ide-no-fhs = final.callPackage ./pkg/ide.nix {useFHS = false;};
+        google-antigravity-cli = final.callPackage ./pkg/cli.nix {};
+        google-antigravity-cli-no-fhs = final.callPackage ./pkg/cli.nix {useFHS = false;};
       };
     };
 }
