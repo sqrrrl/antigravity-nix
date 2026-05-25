@@ -101,7 +101,7 @@ Packaging variants for IDE, Hub, and CLI are available:
 | Variant | Strategy | Trade-off |
 |---|---|---|
 | `default` / `google-antigravity` / `google-antigravity-ide` | `buildFHSEnv` + bubblewrap | Sandboxed, but inherits `no_new_privileges` restrictions |
-| `google-antigravity-no-fhs` / `google-antigravity-ide-no-fhs` | `autoPatchelfHook` | No sandbox, full system integration |
+| `google-antigravity-no-fhs` / `google-antigravity-ide-no-fhs` / `google-antigravity-cli-no-fhs` | `autoPatchelfHook` | No sandbox, full system integration |
 | `google-antigravity-cli` | Static Binary Wrapper | CLI binary runs natively |
 
 The **default** uses `buildFHSEnv` to create an isolated FHS environment via bubblewrap. This is the most compatible approach, but the sandbox sets the kernel's `no_new_privileges` flag, which prevents privilege escalation (`sudo`, `pkexec`) and can cause issues with nested namespaces.

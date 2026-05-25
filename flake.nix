@@ -27,6 +27,7 @@
           google-antigravity-ide-no-fhs = pkgs.callPackage ./pkg/ide.nix {useFHS = false;};
 
           google-antigravity-cli = pkgs.callPackage ./pkg/cli.nix {};
+          google-antigravity-cli-no-fhs = pkgs.callPackage ./pkg/cli.nix {useFHS = false;};
         };
 
         # Development shell for working on this flake
@@ -67,6 +68,7 @@
         google-antigravity-ide = final.callPackage ./pkg/ide.nix {};
         google-antigravity-ide-no-fhs = final.callPackage ./pkg/ide.nix {useFHS = false;};
         google-antigravity-cli = final.callPackage ./pkg/cli.nix {};
+        google-antigravity-cli-no-fhs = final.callPackage ./pkg/cli.nix {useFHS = false;};
       };
     };
 }
