@@ -20,7 +20,7 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     mkdir -p $out/bin
-    cp agy $out/bin/agy
+    cp antigravity $out/bin/agy
     chmod +x $out/bin/agy
   '';
 
