@@ -3,6 +3,8 @@
   stdenv,
   fetchurl,
   makeWrapper,
+  autoPatchelfHook,
+  zlib
 }:
 
 stdenv.mkDerivation rec {
@@ -14,7 +16,8 @@ stdenv.mkDerivation rec {
     sha256 = "sha256-gfoD752FdtCLTMAEjdvtKdPUangB+LRDqTVHHdnAbb4=";
   };
 
-  nativeBuildInputs = [ makeWrapper ];
+  nativeBuildInputs = [ makeWrapper autoPatchelfHook ];
+  buildInputs = [ zlib stdenv.cc.cc.lib ];
 
   sourceRoot = ".";
 
