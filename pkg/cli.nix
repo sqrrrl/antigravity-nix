@@ -10,11 +10,11 @@
   useFHS ? true,
 }: let
   pname = "google-antigravity-cli";
-  version = "1.0.1-5826024320139264";
+  version = "1.0.3-6260531212976128";
 
   finalSrc = fetchurl {
     url = "https://storage.googleapis.com/antigravity-public/antigravity-cli/${version}/linux-x64/cli_linux_x64.tar.gz";
-    sha256 = "sha256-gfoD752FdtCLTMAEjdvtKdPUangB+LRDqTVHHdnAbb4=";
+    sha256 = "sha256-BH02Ndl7Su7MDcM79SfYQRF50VRDAwA+ifw8uDsNBGI=";
   };
 
   meta = with lib; {
