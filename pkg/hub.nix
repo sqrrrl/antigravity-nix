@@ -54,7 +54,7 @@
   srcOverride ? null,
 }: let
   pname = "google-antigravity-hub";
-  version = "2.0.6-5413878570549248";
+  version = "2.0.10-5119448496078848";
 
   isAarch64 = stdenv.hostPlatform.system == "aarch64-linux";
 
@@ -85,7 +85,7 @@
     else
       fetchurl {
         url = "https://storage.googleapis.com/antigravity-public/antigravity-hub/${version}/linux-x64/Antigravity.tar.gz";
-        sha256 = "sha256-rR4EU1FJsHwnAw6x6tQPTv2jiMs5AgvLuazN+0nkTMU=";
+        sha256 = "sha256-EtpgukOuoxKItexk2JqrcPYf2yogwMtbYQwg6DtkbjI=";
       };
 
   # Create a browser wrapper

@@ -57,9 +57,9 @@
     )
     // {
       # Version information for auto-update
-      version = "2.0.6-5413878570549248";
+      version = "2.0.10-5119448496078848";
       ide_version = "2.0.3-6242596486512640";
-      cli_version = "1.0.1-5826024320139264";
+      cli_version = "1.0.3-6260531212976128";
 
       # Overlay for easy integration into NixOS configurations
       overlays.default = final: prev: {
